@@ -1,0 +1,72 @@
+# GPT help
+'''2. Plate solve the image and compare RA and DEC to those of the telescope pointing'''
+# does not compare yet
+
+# feeding the images (data) to Method 1. nova.astrometry.net website; Method 2. astrometry.Solver object
+
+# Method 1:
+# requires internet connection
+# source: https://astroquery.readthedocs.io/en/latest/astrometry_net/astrometry_net.html
+
+ast = AstrometryNet()
+ast.api_key = 'qwzodszfxyddowbc'   # my API in astrometry.net
+
+# Looping through chosen .fit images:
+for filename in os.listdir(path_to_folder):
+    if filename.endswith(".fit"):
+        path_to_fits = os.path.join(path_to_folder, filename)
+
+        try:
+            wcs_header = ast.solve_from_image(path_to_fits, solve_timeout=300)   # 300s before wcs_header can be declared as "None"
+
+            if wcs_header:
+                print(f"Solved {filename}, WCS: {wcs_header}")
+            else:
+                print(f"Failed to solve {filename}")
+
+        except Exception as e:
+            print(f"{filename}: Image plate-solving failed within time boundaries set.")
+
+    else:
+        print(f"Some non .fit type images are in here: {filename}")
+
+# Method 2:
+# runs locally
+# source: https://pypi.org/project/astrometry/
+
+# path to local astrometry index files:
+index_path = "/Users/alicou_banana/Desktop/Science_project/astrometry.net-0.91"
+
+# For now, one image at a time:
+image_time, telescope_RA, telescope_DEC, image_data = batch_list[4]   # fourth
+image_height, image_width = image_data.shape
+print('height: ', image_height, 'width: ', image_width)
+
+sources = Table.read('catalog.fits')
+sources.sort('FLUX')   # sorts sources in ascending order
+sources.reverse()   # descending -> brightner first
+
+with astrometry.Solver(index_path) as solver:
+    solution = solver.solve(image_data, width=image_width, height=image_height)
+
+    if solution.has_match():   # if plate-solving has succeeded
+
+        wcs = solution.best_match().astropy_wcs()
+        pixels = wcs.all_world2pix(
+            [[star.ra_deg, star.dec_deg] for star in solution.best_match().stars],
+            0,   # pixel coordinates start at 0
+        )
+        # pixels is a len(solution.best_match().stars) x 2 numpy array of float values (for x and y position of pixel where star is)
+        
+        print("Pixel positions of matched stars (x, y):")
+        print(pixels)
+
+        for star in solution.best_match().stars:
+            print(f"{star.ra_deg}º, {star.dec_deg}º:", star.metadata)   # prints star coordinates in RA and DEC to 6 decimal places and metadata
+
+        print("Image centre RA/DEC:", wcs.wcs.crval)   # to compare to where telescope thought it was pointing
+
+        print("Pixel scale:", wcs.wcs.cdelt)   # how much sky covered by any one pixel
+
+    else:
+        print("Plate-solving failed.")
