@@ -1,0 +1,41 @@
+'''1. Load images and record timestamps + DEC + RA info '''
+
+# inspired by Riley's fits_image_reader program
+# hard coded for now
+    
+path_to_folder = "/.../fits_images/"
+
+def read_fits(path_to_folder):
+
+    # Storing RA, DEC, image time and pixel brightness of each image in given folder:
+    batch_data = []
+
+    for filename in os.listdir(path_to_folder):
+        if filename.endswith(".fit"):
+
+            fits_path = os.path.join(path_to_folder, filename)
+
+            with fits.open(fits_path) as hdul:   # hdu stands for header/data units
+
+                # print('hdul: ', hdul)
+                # for i in range(len(hdul)):
+                #     print('hdul'[i], '=', hdul[i])
+
+                header = hdul[0].header
+                image_data = hdul[0].data   # matrix with brightness value per pixel
+                hdul.close()
+                # print('image data: ', image_data, '\n', 'header data: ', header)
+
+                image_time = header.get("DATE-OBS")   # image_time = telescope_time
+                telescope_RA = (header.get("OBJCTRA"))   # that of centre of image
+                telescope_DEC = (header.get("OBJCTDEC"))
+
+                # print('telescope RA: ', telescope_RA, '\n', 'telescope DEC', telescope_DEC, '\n', 'image time', image_time)
+
+                batch_data.append((image_time, telescope_RA, telescope_DEC, image_data))
+
+    return batch_data
+
+read_fits(path_to_folder)
+batch_list = read_fits(path_to_folder)
+print('There were ', len(batch_list), ' images loaded from the folder.')
