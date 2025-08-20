@@ -1,0 +1,31 @@
+# find where 3I/ATLAS is from theskylive.com
+
+def back2degrees():
+
+    # case sensitive at the moment
+    RA_hours = float(input("RA - How many hours? "))
+    RA_minutes = float(input("RA - How many minutes? "))
+    RA_seconds = float(input("RA - How many seconds? "))
+    DEC_degrees = float(input("DEC - How many degrees? "))
+    DEC_arcsecs = float(input("DEC - How many arcsecs? "))
+    DEC_mas = float(input("DEC - How many milliarcsecs? "))
+    RA_degrees = RA_hours * 15 + RA_minutes * 15/60 + RA_seconds * 15/3600
+    DEC_degrees = DEC_degrees + DEC_arcsecs / 3600 + DEC_mas / (3600*10**3)
+    
+    return RA_degrees, DEC_degrees
+
+RA_deg, DEC_deg = back2degrees()
+
+# Observation location:
+ROO_location = EarthLocation(lat=-37.680589141*u.deg, lon=145.061634327*u.deg, height=0.155083*u.m)   # u enables to attach physical units to numbers
+
+# Time of observation:
+obs_time = Time('2025-10-29 01:30:00')   # UTC
+
+# Sky coordinates of satellite:
+sat_coord = SkyCoord(ra=RA_deg*u.deg, dec=DEC_deg*u.deg, frame='icrs')
+
+# Transforming to Alt/Az frame:
+altaz = sat_coord.transform_to(AltAz(obstime=obs_time, location=ROO_location))
+
+print(f"Elevation: {altaz.alt:.2f}, Azimuth: {altaz.az:.2f}")
