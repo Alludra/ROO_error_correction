@@ -1,3 +1,6 @@
+import os
+from astropy.io import fits
+
 '''1. Load images and record timestamps + DEC + RA info '''
 
 # inspired by Riley's fits_image_reader program
