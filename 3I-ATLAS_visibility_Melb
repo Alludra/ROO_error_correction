@@ -4,7 +4,7 @@
 
 
 # source: https://ssd.jpl.nasa.gov/horizons/manual.html#observer-table
-# GPT/Gemini cross check for troubleshooting
+# GPT/Gemini cross-check for troubleshooting
 
 from astroquery.jplhorizons import Horizons
 import astropy.units as u
